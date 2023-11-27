@@ -59,18 +59,24 @@ class TrokrevetnaSobaFactory implements SobaFactory{
     }
 }
 
-class Hotel{
-    private static $instance;
-    private $listaSoba = [
-        JednokrevetnaSoba::class => [],
-        DvokrevetnaSoba::class => [],
-        TrokrevetnaSoba::class => []
-    ];
+interface HotelObserver {
+    public function attach(Korisnik $korisnik, string $tipSobe);
+    public function detach(Korisnik $korisnik, string $tipSobe);
+    public function notify(string $tipSobe);
+}
 
+class Hotel implements HotelObserver{
+    private static $instance;
+    private $listaSoba = [];
     private $slobodneSobe = [
         JednokrevetnaSoba::class => 0,
         DvokrevetnaSoba::class => 0,
         TrokrevetnaSoba::class => 0
+    ];
+    private $subscriberi = [
+        JednokrevetnaSoba::class => [],
+        DvokrevetnaSoba::class => [],
+        TrokrevetnaSoba::class => []
     ];
 
     private function __construct()
@@ -91,16 +97,62 @@ class Hotel{
         $this->slobodneSobe[$tipSobe]++;
     }
 
-    public function iznajmiSobu(string $tipSobe){
+    public function iznajmiSobu(Korisnik $korisnik, string $tipSobe){
         if($this->slobodneSobe[$tipSobe] > 0){
-            echo "Iznajmljena " . $tipSobe . "\n";
+            echo $korisnik->getIme() . " je iznajmio " . $tipSobe . "\n";
             $this->slobodneSobe[$tipSobe]--;
             return $this->listaSoba[$tipSobe][array_rand($this->listaSoba[$tipSobe])];
         }else{
-            echo "Nema slobodnih soba \n";
+            echo "Nema slobodnih soba. " . $korisnik->getIme() . " dodat na listu cekanja \n";
+            $this->attach($korisnik, $tipSobe);
         }
     }
 
+    public function checkout(Korisnik $korisnik, string $tipSobe){
+        echo $korisnik->getIme() . " se checkoutovo \n";
+        $this->slobodneSobe[$tipSobe]++;
+        $this->detach($korisnik, $tipSobe);
+        $this->notify($tipSobe);
+    }
+
+    public function attach(Korisnik $korisnik, string $tipSobe)
+    {
+        $this->subscriberi[$tipSobe][] = $korisnik;
+    }
+
+    public function detach(Korisnik $korisnik, string $tipSobe)
+    {
+        $key = array_search($korisnik, $this->subscriberi[$tipSobe]);
+        unset($this->subscriberi[$tipSobe][$key]);
+    }
+
+    public function notify(string $tipSobe)
+    {
+        foreach($this->subscriberi[$tipSobe] as $subscriber){
+            $subscriber->notify($tipSobe . " je dostupna");
+        }
+    }
+}
+
+class Korisnik{
+    private string $ime;
+    private string $prezime;
+    private string $jmbg;
+    
+    public function __construct($ime, $prezime, $jmbg)
+    {
+        $this->ime = $ime;
+        $this->prezime = $prezime;
+        $this->jmbg = $jmbg;
+    }
+
+    public function getIme(){
+        return $this->ime;
+    }
+
+    public function notify(string $message) {
+        printf("%s: %s \n", $this->ime, $message);
+    }
 }
 
 $jednokrevetnaSobaFactory = new JednokrevetnaSobaFactory();
@@ -120,6 +172,13 @@ $dvokrevetnaSoba->setBrojSobe(77);
 $dvokrevetnaSoba->setPrivatnoKupatilo(true);
 $dvokrevetnaSoba->setImaBalkon(true);
 Hotel::getInstance()->addSoba($dvokrevetnaSoba);
+$korisnik = new Korisnik('Pera', 'Tester', '23432532');
+$korisnik2 = new Korisnik('Marko', 'Markovic', '5234234234');
+$korisnik3 = new Korisnik('Mitar', 'Mitrovic', '432432423');
 
-$iznajmljenaSoba = Hotel::getInstance()->iznajmiSobu(DvokrevetnaSoba::class);
-var_dump($iznajmljenaSoba);
+Hotel::getInstance()->iznajmiSobu($korisnik, DvokrevetnaSoba::class);
+Hotel::getInstance()->iznajmiSobu($korisnik2, DvokrevetnaSoba::class);
+Hotel::getInstance()->iznajmiSobu($korisnik3, DvokrevetnaSoba::class);
+Hotel::getInstance()->checkout($korisnik, DvokrevetnaSoba::class);
+Hotel::getInstance()->iznajmiSobu($korisnik2, DvokrevetnaSoba::class);
+Hotel::getInstance()->checkout($korisnik2, DvokrevetnaSoba::class);
