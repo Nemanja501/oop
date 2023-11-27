@@ -4,60 +4,64 @@ abstract class Soba{
     private bool $privatnoKupatilo;
     private bool $imaBalkon;
 
-    public function __construct(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon)
+    public function __construct()
     {
+    
+    }
+
+    public function setBrojSobe(int $brojSobe){
         $this->brojSobe = $brojSobe;
+    }
+
+    public function setPrivatnoKupatilo(bool $privatnoKupatilo){
         $this->privatnoKupatilo = $privatnoKupatilo;
+    }
+
+    public function setImaBalkon(bool $imaBalkon){
         $this->imaBalkon = $imaBalkon;
     }
 }
 
 class JednokrevetnaSoba extends Soba{
-    public function __construct(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon)
-    {
-        parent::__construct($brojSobe, $privatnoKupatilo, $imaBalkon);
-    }
+
 }
 
 class DvokrevetnaSoba extends Soba{
-    public function __construct(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon)
-    {
-        parent::__construct($brojSobe, $privatnoKupatilo, $imaBalkon);
-    }
+
 }
 
 class TrokrevetnaSoba extends Soba{
-    public function __construct(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon)
-    {
-        parent::__construct($brojSobe, $privatnoKupatilo, $imaBalkon);
-    }
+
 }
 
 interface SobaFactory{
-    public function createSoba(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon): Soba;
+    public function createSoba(): Soba;
 }
 
 class JednokrevetnaSobaFactory implements SobaFactory{
-    public function createSoba(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon): JednokrevetnaSoba
+    public function createSoba(): JednokrevetnaSoba
     {
-        return new JednokrevetnaSoba($brojSobe, $privatnoKupatilo, $imaBalkon);
+        return new JednokrevetnaSoba();
     }
 }
 
 class DvokrevetnaSobaFactory implements SobaFactory{
-    public function createSoba(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon): DvokrevetnaSoba
+    public function createSoba(): DvokrevetnaSoba
     {
-        return new DvokrevetnaSoba($brojSobe, $privatnoKupatilo, $imaBalkon);
+        return new DvokrevetnaSoba();
     }
 }
 
 class TrokrevetnaSobaFactory implements SobaFactory{
-    public function createSoba(int $brojSobe, bool $privatnoKupatilo, bool $imaBalkon): TrokrevetnaSoba
+    public function createSoba(): TrokrevetnaSoba
     {
-        return new TrokrevetnaSoba($brojSobe, $privatnoKupatilo, $imaBalkon);
+        return new TrokrevetnaSoba();
     }
 }
 
 $jednokrevetnaSobaFactory = new JednokrevetnaSobaFactory();
-$jednokrevetnaSoba = $jednokrevetnaSobaFactory->createSoba(34, true, true);
+$jednokrevetnaSoba = $jednokrevetnaSobaFactory->createSoba();
+$jednokrevetnaSoba->setBrojSobe(55);
+$jednokrevetnaSoba->setPrivatnoKupatilo(true);
+$jednokrevetnaSoba->setImaBalkon(false);
 var_dump($jednokrevetnaSoba);
